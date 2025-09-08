@@ -13,7 +13,7 @@ load_dotenv()
 @st.cache_resource
 def get_app():
     # Initialize model (no streaming since we want final responses)
-    model = ChatGroq(model="llama-3.3-70b-versatile")
+    model = ChatGroq(model="llama-3.3-70b-versatile") # type: ignore
 
     # Build workflow
     workflow = StateGraph(state_schema=MessagesState)
@@ -41,7 +41,7 @@ st.title("💬 ChatGroq + LangGraph + Memory (cached)")
 config = {"configurable": {"thread_id": "chat-session"}}
 
 # Fetch conversation state from memory
-state = app.get_state(config) # type: ignore
+state = app.get_state(config)  # type: ignore
 messages = state.values.get("messages", [])
 
 # Replay previous messages
@@ -57,7 +57,7 @@ if user_input := st.chat_input("Ask something..."):
         st.markdown(user_input)
 
     # Invoke app with new human message
-    output = app.invoke({"messages": [HumanMessage(user_input)]}, config) # type: ignore
+    output = app.invoke({"messages": [HumanMessage(user_input)]}, config)  # type: ignore
     ai_message = output["messages"][-1]
 
     # Show assistant reply
