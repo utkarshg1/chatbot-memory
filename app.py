@@ -4,6 +4,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
+import uuid
 
 # Load .env (expects GROQ_API_KEY)
 load_dotenv()
@@ -13,7 +14,7 @@ load_dotenv()
 @st.cache_resource
 def get_app():
     # Initialize model (no streaming since we want final responses)
-    model = ChatGroq(model="llama-3.3-70b-versatile") # type: ignore
+    model = ChatGroq(model="llama-3.3-70b-versatile")  # type: ignore
 
     # Build workflow
     workflow = StateGraph(state_schema=MessagesState)
@@ -37,8 +38,20 @@ app = get_app()
 # --- 2. Streamlit UI ---
 st.title("💬 ChatGroq + LangGraph + Memory (cached)")
 
-# Thread id (could expose in sidebar for multi-thread chat)
-config = {"configurable": {"thread_id": "chat-session"}}
+# Initialize thread_id in session state if it doesn't exist
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
+
+# Add New Chat button in sidebar
+with st.sidebar:
+    st.header("Chat Controls")
+    if st.button("New Chat", type="primary"):
+        # Generate a new thread ID to start fresh
+        st.session_state.thread_id = str(uuid.uuid4())
+        st.rerun()
+
+# Thread config using session state
+config = {"configurable": {"thread_id": st.session_state.thread_id}}
 
 # Fetch conversation state from memory
 state = app.get_state(config)  # type: ignore
